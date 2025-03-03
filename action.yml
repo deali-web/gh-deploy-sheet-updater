@@ -11,5 +11,16 @@ inputs:
     required: true
 
 runs:
-  using: "node20"
-  main: "target/index.js"
+  using: "composite"
+  steps:
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
+
+    - name: Install dependencies
+      run: yarn install --production --frozen-lockfile
+      shell: bash
+
+    - name: Run script
+      run: yarn node target/index.js
+      shell: bash
