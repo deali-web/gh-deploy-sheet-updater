@@ -1,0 +1,15 @@
+name: "gh-deploy-sheet-updater"
+description: "Github Action 배포시트 업데이트"
+author: "deali-web"
+
+inputs:
+  project:
+    description: "프로젝트명"
+    required: true
+  environment:
+    description: "실행환경"
+    required: true
+
+runs:
+  using: "node20"
+  main: "target/index.js"
