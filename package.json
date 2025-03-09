@@ -3,7 +3,7 @@
   "packageManager": "yarn@3.6.1",
   "scripts": {
     "clean": "rm -rf target",
-    "build": "yarn tsc",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=target/index.js",
     "postinstall": "echo 'yarn build' && yarn build",
     "start": "yarn build && node target/index.js"
   },
@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.8",
+    "esbuild": "^0.25.0",
     "typescript": "^5.8.2"
   }
 }
