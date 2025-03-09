@@ -4,7 +4,8 @@
   "scripts": {
     "clean": "rm -rf target",
     "build": "yarn tsc",
-    "postinstall": "yarn build"
+    "postinstall": "echo 'yarn build' && yarn build",
+    "start": "yarn build && node target/index.js"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
