@@ -6,10 +6,8 @@ async function run() {
     const project = core.getInput("project") || "프로젝트명";
     const environment = core.getInput("environment") || "실행환경";
     const commitMessage = core.getInput("commit_message") || "커밋 메시지";
-    const branch = process.env.GITHUB_REF_NAME || "배포 브랜치"; // 실행 중인 브랜치 가져오기
-    const deployer = `${process.env.GITHUB_USER} (${
-      process.env.GITHUB_ACTOR || process.env.GITHUB_ACTOR
-    })`; // GitHub Actions 실행한 사용자 이름
+    const branch = process.env.GITHUB_REF_NAME || "배포 브랜치";
+    const deployer = process.env.GITHUB_ACTOR || "배포자";
     const spreadsheetId =
       process.env.SPREADSHEET_ID ||
       "1nOstjlAkVG0hSLJbcOkePzde2c2Oa-JzGQG87wqodBM";

@@ -33,27 +33,40 @@ export async function updateGoogleSheet({
     .slice(0, 2)
     .join(":");
 
-  // 프로젝트명, 실행환경, 브랜치, 배포자, 커밋 메시지, 날짜
-  const values = [
-    [project, environment, branch, deployer, commitMessage, date],
-  ];
-
-  /**
-   * append props
-   * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-   * spreadsheetId: 업데이트할 스프레드시트 ID
-   * range: 업데이트할 시트 이름과 업데이트할 범위 ("SheetName!A1:E")
-   * valueInputOption: 입력 옵션 (RAW: 값 그대로, USER_ENTERED: 사용자가 입력한 형태)
-   * insertDataOption: 데이터 삽입 옵션 (INSERT_ROWS: 새로운 행에 데이터 추가, OVERWRITE: 기존 데이터 덮어쓰기)
-   * requestBody.value: 업데이트할 데이터 [[row1], [row2], ...]
-   */
-  await sheets.spreadsheets.values.append({
+  // 시트에서 전체 데이터를 가져와 특정 프로젝트/환경이 위치한 행을 찾음
+  const range = "시트6!B:C"; // B열(프로젝트), C열(환경)
+  const sheetData = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: "시트6!A:F",
+    range,
+  });
+
+  const rows = sheetData.data.values || [];
+  let targetRow = -1;
+
+  // B열(프로젝트)과 C열(환경)이 일치하는 행을 찾음
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i][0] === project && rows[i][1] === environment) {
+      targetRow = i + 1; // Google Sheets는 1-based index
+      break;
+    }
+  }
+
+  if (targetRow === -1) {
+    console.error("❌ 해당 프로젝트와 실행환경을 찾을 수 없습니다.");
+    return;
+  }
+
+  // 업데이트할 값 설정 (D, E, F, G 열에 해당하는 값)
+  const values = [[branch, deployer, commitMessage, date]];
+
+  // 찾은 행의 D:G 열을 업데이트
+  const updateRange = `시트6!D${targetRow}:G${targetRow}`;
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: updateRange,
     valueInputOption: "RAW",
-    insertDataOption: "INSERT_ROWS",
     requestBody: { values },
   });
 
-  console.log("✅ Google Sheets 업데이트 완료!");
+  console.log(`✅ Google Sheets 업데이트 완료! (${updateRange})`);
 }
