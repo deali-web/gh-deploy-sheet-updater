@@ -49,7 +49,7 @@ export async function updateGoogleSheet({
       lastProject = rows[i][0];
     }
 
-    if (lastProject === project && rows[i][1] === environment) {
+    if (lastProject.includes(project) && rows[i][1] === environment) {
       targetRow = i + 1; // Google Sheets는 1-based index
       break;
     }
