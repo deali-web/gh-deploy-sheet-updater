@@ -1,12 +1,22 @@
 import { google } from "googleapis";
 
-export async function updateGoogleSheet(
-  spreadsheetId: string,
-  project: string,
-  environment: string,
-  branch: string,
-  deployer: string
-) {
+interface UpdateGoogleSheetProps {
+  spreadsheetId: string;
+  project: string;
+  environment: string;
+  branch: string;
+  deployer: string;
+  commitMessage: string;
+}
+
+export async function updateGoogleSheet({
+  spreadsheetId,
+  project,
+  environment,
+  branch,
+  deployer,
+  commitMessage,
+}: UpdateGoogleSheetProps) {
   const credentials = JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS || "{}");
   const auth = new google.auth.GoogleAuth({
     credentials,
@@ -15,9 +25,18 @@ export async function updateGoogleSheet(
 
   const sheets = google.sheets({ version: "v4", auth });
 
-  const date = new Date().toISOString().split("T")[0];
+  const date = new Date()
+    .toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+    .replace(/\. /g, "-")
+    .replace(" ", "T")
+    .split(":")
+    .slice(0, 2)
+    .join(":");
 
-  const values = [[project, environment, branch, deployer, date]];
+  // 프로젝트명, 실행환경, 브랜치, 배포자, 커밋 메시지, 날짜
+  const values = [
+    [project, environment, branch, deployer, commitMessage, date],
+  ];
 
   /**
    * append props
@@ -30,7 +49,7 @@ export async function updateGoogleSheet(
    */
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: "시트6!A:E", // A: 프로젝트명, B: 환경, C: 브랜치, D: 배포자, E: 날짜
+    range: "시트6!A:F",
     valueInputOption: "RAW",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values },

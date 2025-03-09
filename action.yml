@@ -9,18 +9,13 @@ inputs:
   environment:
     description: "실행환경"
     required: true
+  commit_message:
+    description: "마지막 커밋 메시지"
+    required: true
 
 runs:
   using: "composite"
   steps:
-    - name: Enable Corepack
-      run: corepack enable
-      shell: bash
-
-    - name: Install dependencies
-      run: yarn install --immutable
-      shell: bash
-
     - name: Run script
       run: node ${{ github.action_path }}/target/index.js
       shell: bash
