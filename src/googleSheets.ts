@@ -42,10 +42,14 @@ export async function updateGoogleSheet({
 
   const rows = sheetData.data.values || [];
   let targetRow = -1;
+  let lastProject = "";
 
-  // B열(프로젝트)과 C열(환경)이 일치하는 행을 찾음
   for (let i = 0; i < rows.length; i++) {
-    if (rows[i][0] === project && rows[i][1] === environment) {
+    if (rows[i][0]) {
+      lastProject = rows[i][0];
+    }
+
+    if (lastProject === project && rows[i][1] === environment) {
       targetRow = i + 1; // Google Sheets는 1-based index
       break;
     }
