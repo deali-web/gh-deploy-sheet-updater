@@ -21,6 +21,10 @@ runs:
       run: yarn install --immutable
       shell: bash
 
+    - name: Build
+      run: yarn build
+      shell: bash
+
     - name: Run script
       run: yarn node target/index.js
       shell: bash
