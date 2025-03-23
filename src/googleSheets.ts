@@ -24,7 +24,7 @@ export async function updateGoogleSheet({
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
-  const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: "v4", auth }); //
 
   const date = new Date()
     .toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
@@ -65,7 +65,7 @@ export async function updateGoogleSheet({
   const values = [[branch, deployer, message, date]];
 
   // 찾은 행의 D:G 열을 업데이트
-  const updateRange = `시트6!D${targetRow}:G${targetRow}`;
+  const updateRange = `시트6!D${targetRow}:G${targetRow}`; // TODO 시트명 수정할 것
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: updateRange,
