@@ -9,8 +9,8 @@ inputs:
   environment:
     description: "실행환경"
     required: true
-  commit_message:
-    description: "마지막 커밋 메시지"
+  message:
+    description: "배포 용도"
     required: true
 
 runs:

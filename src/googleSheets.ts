@@ -1,23 +1,24 @@
 import { google } from "googleapis";
 
 interface UpdateGoogleSheetProps {
+  credentials: any;
   spreadsheetId: string;
   project: string;
   environment: string;
   branch: string;
   deployer: string;
-  commitMessage: string;
+  message: string;
 }
 
 export async function updateGoogleSheet({
+  credentials,
   spreadsheetId,
   project,
   environment,
   branch,
   deployer,
-  commitMessage,
+  message,
 }: UpdateGoogleSheetProps) {
-  const credentials = JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS || "{}");
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
@@ -61,7 +62,7 @@ export async function updateGoogleSheet({
   }
 
   // 업데이트할 값 설정 (D, E, F, G 열에 해당하는 값)
-  const values = [[branch, deployer, commitMessage, date]];
+  const values = [[branch, deployer, message, date]];
 
   // 찾은 행의 D:G 열을 업데이트
   const updateRange = `시트6!D${targetRow}:G${targetRow}`;
