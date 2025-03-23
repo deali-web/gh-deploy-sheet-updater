@@ -6,14 +6,16 @@ async function run() {
     const project = core.getInput("project", { required: true }); // 프로젝트명
     const environment = core.getInput("environment", { required: true }); // 실행환경
     const message = core.getInput("message", { required: false }) || "";
-    const branch = process.env.GITHUB_REF_NAME || "배포 브랜치";
-    const deployer = process.env.GITHUB_ACTOR || "배포자";
-    const spreadsheetId =
-      process.env.SPREADSHEET_ID ||
-      "1nOstjlAkVG0hSLJbcOkePzde2c2Oa-JzGQG87wqodBM";
-    const credentials = JSON.parse(
-      process.env.GOOGLE_SHEETS_CREDENTIALS || "{}"
-    );
+    const branch =
+      core.getInput("github_ref_name", { required: false }) || "배포 브랜치";
+    const deployer =
+      core.getInput("github_actor", { required: false }) || "배포자";
+    const spreadsheetId = core.getInput("spreadsheet_id", { required: true });
+    const googleSheetsCredentials = core.getInput("google_sheets_credentials", {
+      required: true,
+    });
+    core.setSecret(googleSheetsCredentials); // credentials 마스킹 처리
+    const credentials = JSON.parse(googleSheetsCredentials);
 
     if (!spreadsheetId) {
       throw new Error("SPREADSHEET_ID가 설정되지 않았습니다.");

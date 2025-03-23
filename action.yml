@@ -12,6 +12,18 @@ inputs:
   message:
     description: "배포 용도"
     required: true
+  github_ref_name:
+    description: "Github Ref Name"
+    required: false
+  github_actor:
+    description: "Github Actor"
+    required: false
+  google_sheets_credentials:
+    description: "Google Sheets Credentials"
+    required: true
+  spreadsheet_id:
+    description: "Google Sheets Spreadsheet ID"
+    required: true
 
 runs:
   using: "node20"
