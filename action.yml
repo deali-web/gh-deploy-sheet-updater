@@ -14,8 +14,5 @@ inputs:
     required: true
 
 runs:
-  using: "composite"
-  steps:
-    - name: Run script
-      run: node ${{ github.action_path }}/target/index.js
-      shell: bash
+  using: "node20"
+  main: "target/index.js"
