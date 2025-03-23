@@ -11,7 +11,9 @@ async function run() {
     const spreadsheetId =
       process.env.SPREADSHEET_ID ||
       "1nOstjlAkVG0hSLJbcOkePzde2c2Oa-JzGQG87wqodBM";
-    const credentials = process.env.GOOGLE_SHEETS_CREDENTIALS;
+    const credentials = JSON.parse(
+      process.env.GOOGLE_SHEETS_CREDENTIALS || "{}"
+    );
 
     if (!spreadsheetId) {
       throw new Error("SPREADSHEET_ID가 설정되지 않았습니다.");
