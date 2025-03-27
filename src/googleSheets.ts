@@ -10,7 +10,7 @@ interface UpdateGoogleSheetProps {
   message: string;
 }
 
-export async function updateGoogleSheet({
+export const updateGoogleSheet = async ({
   credentials,
   spreadsheetId,
   project,
@@ -18,13 +18,13 @@ export async function updateGoogleSheet({
   branch,
   deployer,
   message,
-}: UpdateGoogleSheetProps) {
+}: UpdateGoogleSheetProps): Promise<void> => {
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
-  const sheets = google.sheets({ version: "v4", auth }); //
+  const sheets = google.sheets({ version: "v4", auth }); // 구글시트 v4 인스턴스
 
   const date = new Date()
     .toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
@@ -34,11 +34,12 @@ export async function updateGoogleSheet({
     .slice(0, 2)
     .join(":");
 
+  const SHEET_NAME = "웹 배포현황";
+
   // 시트에서 전체 데이터를 가져와 특정 프로젝트/환경이 위치한 행을 찾음
-  const range = "시트6!B:C"; // B열(프로젝트), C열(환경)
   const sheetData = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range,
+    range: `${SHEET_NAME}!B:C`, // B열(프로젝트), C열(환경),
   });
 
   const rows = sheetData.data.values || [];
@@ -57,21 +58,21 @@ export async function updateGoogleSheet({
   }
 
   if (targetRow === -1) {
-    console.error("❌ 해당 프로젝트와 실행환경을 찾을 수 없습니다.");
-    return;
+    throw new Error(
+      `입력한 프로젝트와 실행환경이 ${SHEET_NAME} 시트에 없습니다.`
+    );
   }
 
   // 업데이트할 값 설정 (D, E, F, G 열에 해당하는 값)
   const values = [[branch, deployer, message, date]];
 
   // 찾은 행의 D:G 열을 업데이트
-  const updateRange = `시트6!D${targetRow}:G${targetRow}`; // TODO 시트명 수정할 것
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: updateRange,
-    valueInputOption: "RAW",
+    range: `${SHEET_NAME}!D${targetRow}:G${targetRow}`,
+    valueInputOption: "RAW", // RAW: 텍스트 그대로, USER_ENTERED: 사용자가 입력한 형태로 (수식, 날짜 포멧 적용됨)
     requestBody: { values },
   });
 
-  console.log(`✅ Google Sheets 업데이트 완료! (${updateRange})`);
-}
+  console.log(`${SHEET_NAME} 업데이트 완료!`);
+};
