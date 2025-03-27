@@ -3,7 +3,7 @@
   "packageManager": "yarn@3.6.1",
   "scripts": {
     "clean": "rm -rf target",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=target/index.js --minify --tree-shaking=true",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --minify --tree-shaking=true",
     "postinstall": "echo 'yarn build' && yarn build",
     "start": "yarn build && node target/index.js"
   },
