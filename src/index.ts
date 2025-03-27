@@ -34,8 +34,15 @@ async function run() {
       credentials,
     });
 
+    const deployedAt = new Date().toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+    });
+
     await summary
       .addHeading("웹 배포현황 시트 업데이트 성공")
+      .addRaw(
+        `[${project}] ${environment} : ${branch} ${message} ${deployedAt}\n\n`
+      )
       .addLink(
         "웹 배포현황",
         "https://docs.google.com/spreadsheets/d/1nOstjlAkVG0hSLJbcOkePzde2c2Oa-JzGQG87wqodBM/edit?gid=0#gid=0"
