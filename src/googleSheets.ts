@@ -70,7 +70,7 @@ export const updateGoogleSheet = async ({
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: `${SHEET_NAME}!D${targetRow}:G${targetRow}`,
-    valueInputOption: "RAW", // RAW: 텍스트 그대로, USER_ENTERED: 사용자가 입력한 형태로 (수식, 날짜 포멧 적용됨)
+    valueInputOption: "USER_ENTERED", // RAW: 텍스트 그대로, USER_ENTERED: 사용자가 입력한 형태로 (수식, 날짜 포멧 적용됨)
     requestBody: { values },
   });
 
