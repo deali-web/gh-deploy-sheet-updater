@@ -8,6 +8,7 @@ interface UpdateGoogleSheetProps {
   branch: string;
   deployer: string;
   message: string;
+  endDate: string;
 }
 
 export const updateGoogleSheet = async ({
@@ -18,6 +19,7 @@ export const updateGoogleSheet = async ({
   branch,
   deployer,
   message,
+  endDate,
 }: UpdateGoogleSheetProps): Promise<void> => {
   const auth = new google.auth.GoogleAuth({
     credentials,
@@ -27,12 +29,18 @@ export const updateGoogleSheet = async ({
   const sheets = google.sheets({ version: "v4", auth }); // 구글시트 v4 인스턴스
 
   const date = new Date()
-    .toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+    .toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
     .replace(/\. /g, "-")
-    .replace(" ", "T")
-    .split(":")
-    .slice(0, 2)
-    .join(":");
+    .replace(".", "")
+    .replace(",", "");
 
   const SHEET_NAME = "웹 배포현황";
 
@@ -63,13 +71,13 @@ export const updateGoogleSheet = async ({
     );
   }
 
-  // 업데이트할 값 설정 (D, E, F, G 열에 해당하는 값)
-  const values = [[branch, deployer, message, date]];
+  // 업데이트할 값 설정
+  const values = [[branch, deployer, message, date, endDate]];
 
   // 찾은 행의 D:G 열을 업데이트
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${SHEET_NAME}!D${targetRow}:G${targetRow}`,
+    range: `${SHEET_NAME}!D${targetRow}:H${targetRow}`,
     valueInputOption: "USER_ENTERED", // RAW: 텍스트 그대로, USER_ENTERED: 사용자가 입력한 형태로 (수식, 날짜 포멧 적용됨)
     requestBody: { values },
   });
