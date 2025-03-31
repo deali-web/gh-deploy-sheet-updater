@@ -4,9 +4,11 @@ import { updateGoogleSheet } from "./googleSheets";
 async function run() {
   try {
     const project = getInput("project", { required: true }); // 프로젝트명
-    const environment = getInput("environment", { required: false }) || "PROD"; // 실행환경
-    const message = getInput("message", { required: false });
-    const endDate = getInput("end_date", { required: false });
+    const environment = (
+      getInput("environment", { required: false }) || "PROD"
+    ).toUpperCase(); // 실행환경
+    const message = getInput("message", { required: false }) || "";
+    const endDate = getInput("end_date", { required: false }) || "";
     const branch =
       getInput("github_ref_name", { required: false }) || "배포 브랜치";
     const deployer = getInput("github_actor", { required: false }) || "배포자";

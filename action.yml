@@ -11,10 +11,10 @@ inputs:
     required: true
   message:
     description: "배포 용도"
-    required: true
+    required: false
   end_date:
     description: "사용기간"
-    required: true
+    required: false
   github_ref_name:
     description: "Github Ref Name"
     required: false
