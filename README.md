@@ -12,8 +12,8 @@
 | `environment` | **O** | 배포환경 (DEV-1, DEV-2, QA, STAGE, ...) |
 | `spreadsheet_id` | **O** | 구글시트 ID |
 | `google_sheets_credentials` | **O** | 서비스 사용자 인증 credentials 키 |
-| `message` | | 배포 시트에 입력될 용도 메시지 |
-| `end_date` | **O** | 사용기간 |
+| `message` | | 배포 용도 (호출 워크플로우에서 연동) |
+| `end_date` | | 사용기간 (호출 워크플로우에서 연동) |
 | `github_ref_name` | | 배포 브랜치 (미입력 시 `GITHUB_REF_NAME`에서 자동 조회) |
 | `github_actor` | | 배포자 (미입력 시 `GITHUB_ACTOR`에서 자동 조회) |
 | `github_token` | | GitHub Token (기본값: `github.token` — 자동 주입) |
@@ -61,9 +61,9 @@ jobs:
           environment: DEV
           spreadsheet_id: ${{ vars.SPREADSHEET_ID }}
           google_sheets_credentials: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+          # 호출 워크플로우에서 연동
+          message: ${{ github.event.inputs.message }}
           end_date: ${{ github.event.inputs.end_date }}
-          # 선택
-          message: "기능 배포"
 ```
 
 > 나머지 값(`github_ref_name`, `github_actor`, `github_token`, `commit_message`, `pr_number`, `pr_title`)은
