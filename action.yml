@@ -14,7 +14,7 @@ inputs:
     required: false
   end_date:
     description: "사용기간"
-    required: false
+    required: true
   github_ref_name:
     description: "Github Ref Name"
     required: false

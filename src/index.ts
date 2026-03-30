@@ -11,8 +11,13 @@ async function run() {
     const message = getInput("message", { required: false }) || "";
     const endDate = getInput("end_date", { required: false }) || "";
     const branch =
-      getInput("github_ref_name", { required: false }) || "배포 브랜치";
-    const deployer = getInput("github_actor", { required: false }) || "배포자";
+      getInput("github_ref_name", { required: false }) ||
+      process.env.GITHUB_REF_NAME ||
+      "";
+    const deployer =
+      getInput("github_actor", { required: false }) ||
+      process.env.GITHUB_ACTOR ||
+      "";
     const spreadsheetId = getInput("spreadsheet_id", { required: true });
     const googleSheetsCredentials = getInput("google_sheets_credentials", {
       required: true,
