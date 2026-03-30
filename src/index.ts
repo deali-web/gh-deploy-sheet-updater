@@ -1,5 +1,5 @@
 import { getInput, setSecret, setFailed, summary } from "@actions/core";
-import { context } from "@actions/github";
+import { context, getOctokit } from "@actions/github";
 import { updateGoogleSheet } from "./googleSheets";
 
 async function run() {
@@ -20,20 +20,48 @@ async function run() {
     setSecret(googleSheetsCredentials);
     const credentials = JSON.parse(googleSheetsCredentials);
 
-    const commitMessage =
+    const token = getInput("github_token", { required: false });
+    const { owner, repo } = context.repo;
+
+    let commitMessage =
       getInput("commit_message", { required: false }) ||
       context.payload.head_commit?.message ||
       "";
-    const prNumber =
+    let prNumber =
       getInput("pr_number", { required: false }) ||
       context.payload.pull_request?.number?.toString() ||
       "";
-    const prTitle =
+    let prTitle =
       getInput("pr_title", { required: false }) ||
       context.payload.pull_request?.title ||
       "";
 
-    const { owner, repo } = context.repo;
+    // input/payload에서 못 가져온 정보를 GitHub API로 보완
+    if (token && (!commitMessage || !prNumber)) {
+      const octokit = getOctokit(token);
+
+      if (!commitMessage) {
+        const { data } = await octokit.rest.repos.getCommit({
+          owner,
+          repo,
+          ref: context.sha,
+        });
+        commitMessage = data.commit.message || "";
+      }
+
+      if (!prNumber) {
+        const { data: prs } =
+          await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+            owner,
+            repo,
+            commit_sha: context.sha,
+          });
+        if (prs.length > 0) {
+          prNumber = prs[0].number.toString();
+          prTitle = prTitle || prs[0].title;
+        }
+      }
+    }
 
     if (!spreadsheetId) {
       throw new Error("SPREADSHEET_ID가 설정되지 않았습니다.");
