@@ -1,4 +1,4 @@
-import { getInput, setSecret, setFailed, summary } from "@actions/core";
+import { getInput, setSecret, setFailed, summary, warning } from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 import { updateGoogleSheet } from "./googleSheets";
 
@@ -46,24 +46,32 @@ async function run() {
       const octokit = getOctokit(token);
 
       if (!commitMessage) {
-        const { data } = await octokit.rest.repos.getCommit({
-          owner,
-          repo,
-          ref: context.sha,
-        });
-        commitMessage = data.commit.message || "";
+        try {
+          const { data } = await octokit.rest.repos.getCommit({
+            owner,
+            repo,
+            ref: context.sha,
+          });
+          commitMessage = data.commit.message || "";
+        } catch {
+          warning("커밋 메시지를 조회할 수 없습니다. (contents: read 권한 필요)");
+        }
       }
 
       if (!prNumber) {
-        const { data: prs } =
-          await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
-            owner,
-            repo,
-            commit_sha: context.sha,
-          });
-        if (prs.length > 0) {
-          prNumber = prs[0].number.toString();
-          prTitle = prTitle || prs[0].title;
+        try {
+          const { data: prs } =
+            await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: context.sha,
+            });
+          if (prs.length > 0) {
+            prNumber = prs[0].number.toString();
+            prTitle = prTitle || prs[0].title;
+          }
+        } catch {
+          warning("PR 정보를 조회할 수 없습니다. (pull-requests: read 권한 필요)");
         }
       }
     }

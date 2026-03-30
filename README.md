@@ -68,3 +68,14 @@ jobs:
 
 > 나머지 값(`github_ref_name`, `github_actor`, `github_token`, `commit_message`, `pr_number`, `pr_title`)은
 > 자동 처리되므로 **넘기지 않아도 됩니다.** 명시적으로 넘기면 해당 값이 우선 사용됩니다.
+
+## 권한 (Permissions)
+
+커밋 메시지와 PR 정보를 GitHub API로 자동 조회하려면 호출 워크플로우에 아래 권한이 필요합니다.
+권한이 없어도 액션이 실패하지는 않고, 해당 셀만 비어있게 됩니다.
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: read
+```
