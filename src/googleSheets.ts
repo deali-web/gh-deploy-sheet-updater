@@ -61,10 +61,10 @@ export const updateGoogleSheet = async ({
   const SHEET_NAME = "웹 배포현황";
   const repoUrl = `${serverUrl}/${repository}`;
 
-  // B열(프로젝트) ~ I열(이전 배포 commit SHA)까지 읽어옴
+  // B열(프로젝트), C열(환경) + L열(이전 배포 commit SHA)까지 읽어옴
   const sheetData = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${SHEET_NAME}!B:I`,
+    range: `${SHEET_NAME}!B:L`,
   });
 
   const rows = sheetData.data.values || [];
@@ -88,8 +88,8 @@ export const updateGoogleSheet = async ({
     );
   }
 
-  // 이전 배포의 commit SHA (I열, index 7)
-  const prevSha = rows[targetRow - 1]?.[7] || "";
+  // 이전 배포의 commit SHA (L열, index 10)
+  const prevSha = rows[targetRow - 1]?.[10] || "";
 
   const shortSha = commitSha.substring(0, 7);
   const shaCell = commitSha
@@ -112,27 +112,24 @@ export const updateGoogleSheet = async ({
       ? `=HYPERLINK("${repoUrl}/compare/${prevSha}...${shortSha}", "변경사항 보기")`
       : "";
 
-  const values = [
-    [
-      branch,
-      deployer,
-      message,
-      date,
-      endDate,
-      shaCell,
-      firstLineMessage,
-      prCell,
-      workflowCell,
-      compareCell,
-      eventName,
-    ],
-  ];
-
-  await sheets.spreadsheets.values.update({
+  // D:H(기존 필드) + L:Q(Git 컨텍스트)를 한 번에 업데이트, I:K는 보존
+  await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
-    range: `${SHEET_NAME}!D${targetRow}:N${targetRow}`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: { values },
+    requestBody: {
+      valueInputOption: "USER_ENTERED",
+      data: [
+        {
+          range: `${SHEET_NAME}!D${targetRow}:H${targetRow}`,
+          values: [[branch, deployer, message, date, endDate]],
+        },
+        {
+          range: `${SHEET_NAME}!L${targetRow}:Q${targetRow}`,
+          values: [
+            [shaCell, firstLineMessage, prCell, workflowCell, compareCell, eventName],
+          ],
+        },
+      ],
+    },
   });
 
   console.log(`${SHEET_NAME} 업데이트 완료!`);
