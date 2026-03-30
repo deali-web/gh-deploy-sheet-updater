@@ -9,6 +9,14 @@ interface UpdateGoogleSheetProps {
   deployer: string;
   message: string;
   endDate: string;
+  commitSha: string;
+  commitMessage: string;
+  prNumber: string;
+  prTitle: string;
+  eventName: string;
+  repository: string;
+  serverUrl: string;
+  runId: string;
 }
 
 export const updateGoogleSheet = async ({
@@ -20,13 +28,21 @@ export const updateGoogleSheet = async ({
   deployer,
   message,
   endDate,
+  commitSha,
+  commitMessage,
+  prNumber,
+  prTitle,
+  eventName,
+  repository,
+  serverUrl,
+  runId,
 }: UpdateGoogleSheetProps): Promise<void> => {
   const auth = new google.auth.GoogleAuth({
     credentials,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
-  const sheets = google.sheets({ version: "v4", auth }); // 구글시트 v4 인스턴스
+  const sheets = google.sheets({ version: "v4", auth });
 
   const date = new Date()
     .toLocaleString("ko-KR", {
@@ -43,11 +59,12 @@ export const updateGoogleSheet = async ({
     .replace(",", "");
 
   const SHEET_NAME = "웹 배포현황";
+  const repoUrl = `${serverUrl}/${repository}`;
 
-  // 시트에서 전체 데이터를 가져와 특정 프로젝트/환경이 위치한 행을 찾음
+  // B열(프로젝트) ~ I열(이전 배포 commit SHA)까지 읽어옴
   const sheetData = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${SHEET_NAME}!B:C`, // B열(프로젝트), C열(환경),
+    range: `${SHEET_NAME}!B:I`,
   });
 
   const rows = sheetData.data.values || [];
@@ -60,7 +77,7 @@ export const updateGoogleSheet = async ({
     }
 
     if (lastProject.includes(project) && rows[i][1] === environment) {
-      targetRow = i + 1; // Google Sheets는 1-based index
+      targetRow = i + 1;
       break;
     }
   }
@@ -71,14 +88,50 @@ export const updateGoogleSheet = async ({
     );
   }
 
-  // 업데이트할 값 설정
-  const values = [[branch, deployer, message, date, endDate]];
+  // 이전 배포의 commit SHA (I열, index 7)
+  const prevSha = rows[targetRow - 1]?.[7] || "";
 
-  // 찾은 행의 D:G 열을 업데이트
+  const shortSha = commitSha.substring(0, 7);
+  const shaCell = commitSha
+    ? `=HYPERLINK("${repoUrl}/commit/${commitSha}", "${shortSha}")`
+    : "";
+
+  const firstLineMessage = commitMessage.split("\n")[0].substring(0, 100);
+
+  const escapedPrTitle = prTitle.replace(/"/g, '""');
+  const prCell = prNumber
+    ? `=HYPERLINK("${repoUrl}/pull/${prNumber}", "#${prNumber} ${escapedPrTitle}")`
+    : "";
+
+  const workflowCell = runId
+    ? `=HYPERLINK("${repoUrl}/actions/runs/${runId}", "Actions 로그")`
+    : "";
+
+  const compareCell =
+    prevSha && commitSha
+      ? `=HYPERLINK("${repoUrl}/compare/${prevSha}...${shortSha}", "변경사항 보기")`
+      : "";
+
+  const values = [
+    [
+      branch,
+      deployer,
+      message,
+      date,
+      endDate,
+      shaCell,
+      firstLineMessage,
+      prCell,
+      workflowCell,
+      compareCell,
+      eventName,
+    ],
+  ];
+
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${SHEET_NAME}!D${targetRow}:H${targetRow}`,
-    valueInputOption: "USER_ENTERED", // RAW: 텍스트 그대로, USER_ENTERED: 사용자가 입력한 형태로 (수식, 날짜 포멧 적용됨)
+    range: `${SHEET_NAME}!D${targetRow}:N${targetRow}`,
+    valueInputOption: "USER_ENTERED",
     requestBody: { values },
   });
 

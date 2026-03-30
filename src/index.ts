@@ -1,12 +1,13 @@
 import { getInput, setSecret, setFailed, summary } from "@actions/core";
+import { context } from "@actions/github";
 import { updateGoogleSheet } from "./googleSheets";
 
 async function run() {
   try {
-    const project = getInput("project", { required: true }); // 프로젝트명
+    const project = getInput("project", { required: true });
     const environment = (
       getInput("environment", { required: false }) || "PROD"
-    ).toUpperCase(); // 실행환경
+    ).toUpperCase();
     const message = getInput("message", { required: false }) || "";
     const endDate = getInput("end_date", { required: false }) || "";
     const branch =
@@ -16,8 +17,23 @@ async function run() {
     const googleSheetsCredentials = getInput("google_sheets_credentials", {
       required: true,
     });
-    setSecret(googleSheetsCredentials); // credentials 마스킹 처리
+    setSecret(googleSheetsCredentials);
     const credentials = JSON.parse(googleSheetsCredentials);
+
+    const commitMessage =
+      getInput("commit_message", { required: false }) ||
+      context.payload.head_commit?.message ||
+      "";
+    const prNumber =
+      getInput("pr_number", { required: false }) ||
+      context.payload.pull_request?.number?.toString() ||
+      "";
+    const prTitle =
+      getInput("pr_title", { required: false }) ||
+      context.payload.pull_request?.title ||
+      "";
+
+    const { owner, repo } = context.repo;
 
     if (!spreadsheetId) {
       throw new Error("SPREADSHEET_ID가 설정되지 않았습니다.");
@@ -36,6 +52,14 @@ async function run() {
       message,
       endDate,
       credentials,
+      commitSha: context.sha,
+      commitMessage,
+      prNumber,
+      prTitle,
+      eventName: context.eventName,
+      repository: `${owner}/${repo}`,
+      serverUrl: context.serverUrl,
+      runId: context.runId.toString(),
     });
 
     const deployedAt = new Date().toLocaleString("ko-KR", {
@@ -53,7 +77,7 @@ async function run() {
       )
       .write();
   } catch (error: any) {
-    setFailed(`❌ 작업 실패: ${error.message}`); // 워크플로우에 실패 메시지 전달
+    setFailed(`❌ 작업 실패: ${error.message}`);
   }
 }
 

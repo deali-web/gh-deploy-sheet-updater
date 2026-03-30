@@ -21,6 +21,15 @@ inputs:
   github_actor:
     description: "Github Actor"
     required: false
+  commit_message:
+    description: "커밋 메시지 (예: github.event.head_commit.message)"
+    required: false
+  pr_number:
+    description: "PR 번호 (예: github.event.pull_request.number)"
+    required: false
+  pr_title:
+    description: "PR 제목 (예: github.event.pull_request.title)"
+    required: false
   google_sheets_credentials:
     description: "Google Sheets Credentials"
     required: true
