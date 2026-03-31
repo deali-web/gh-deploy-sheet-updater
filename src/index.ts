@@ -1,23 +1,80 @@
-import { getInput, setSecret, setFailed, summary } from "@actions/core";
+import { getInput, setSecret, setFailed, summary, warning } from "@actions/core";
+import { context, getOctokit } from "@actions/github";
 import { updateGoogleSheet } from "./googleSheets";
 
 async function run() {
   try {
-    const project = getInput("project", { required: true }); // 프로젝트명
+    const project = getInput("project", { required: true });
     const environment = (
       getInput("environment", { required: false }) || "PROD"
-    ).toUpperCase(); // 실행환경
+    ).toUpperCase();
     const message = getInput("message", { required: false }) || "";
     const endDate = getInput("end_date", { required: false }) || "";
     const branch =
-      getInput("github_ref_name", { required: false }) || "배포 브랜치";
-    const deployer = getInput("github_actor", { required: false }) || "배포자";
+      getInput("github_ref_name", { required: false }) ||
+      process.env.GITHUB_REF_NAME ||
+      "";
+    const deployer =
+      getInput("github_actor", { required: false }) ||
+      process.env.GITHUB_ACTOR ||
+      "";
     const spreadsheetId = getInput("spreadsheet_id", { required: true });
     const googleSheetsCredentials = getInput("google_sheets_credentials", {
       required: true,
     });
-    setSecret(googleSheetsCredentials); // credentials 마스킹 처리
+    setSecret(googleSheetsCredentials);
     const credentials = JSON.parse(googleSheetsCredentials);
+
+    const token = getInput("github_token", { required: false });
+    const { owner, repo } = context.repo;
+
+    let commitMessage =
+      getInput("commit_message", { required: false }) ||
+      context.payload.head_commit?.message ||
+      "";
+    let prNumber =
+      getInput("pr_number", { required: false }) ||
+      context.payload.pull_request?.number?.toString() ||
+      "";
+    let prTitle =
+      getInput("pr_title", { required: false }) ||
+      context.payload.pull_request?.title ||
+      "";
+
+    // input/payload에서 못 가져온 정보를 GitHub API로 보완
+    if (token && (!commitMessage || !prNumber)) {
+      const octokit = getOctokit(token);
+
+      if (!commitMessage) {
+        try {
+          const { data } = await octokit.rest.repos.getCommit({
+            owner,
+            repo,
+            ref: context.sha,
+          });
+          commitMessage = data.commit.message || "";
+        } catch {
+          warning("커밋 메시지를 조회할 수 없습니다. (contents: read 권한 필요)");
+        }
+      }
+
+      if (!prNumber) {
+        try {
+          const { data: prs } =
+            await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: context.sha,
+            });
+          if (prs.length > 0) {
+            prNumber = prs[0].number.toString();
+            prTitle = prTitle || prs[0].title;
+          }
+        } catch {
+          warning("PR 정보를 조회할 수 없습니다. (pull-requests: read 권한 필요)");
+        }
+      }
+    }
 
     if (!spreadsheetId) {
       throw new Error("SPREADSHEET_ID가 설정되지 않았습니다.");
@@ -36,6 +93,14 @@ async function run() {
       message,
       endDate,
       credentials,
+      commitSha: context.sha,
+      commitMessage,
+      prNumber,
+      prTitle,
+      eventName: context.eventName,
+      repository: `${owner}/${repo}`,
+      serverUrl: context.serverUrl,
+      runId: context.runId.toString(),
     });
 
     const deployedAt = new Date().toLocaleString("ko-KR", {
@@ -53,7 +118,7 @@ async function run() {
       )
       .write();
   } catch (error: any) {
-    setFailed(`❌ 작업 실패: ${error.message}`); // 워크플로우에 실패 메시지 전달
+    setFailed(`❌ 작업 실패: ${error.message}`);
   }
 }
 

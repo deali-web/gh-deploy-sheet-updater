@@ -21,6 +21,19 @@ inputs:
   github_actor:
     description: "Github Actor"
     required: false
+  github_token:
+    description: "GitHub Token (커밋 메시지, PR 정보 자동 조회에 사용)"
+    required: false
+    default: ${{ github.token }}
+  commit_message:
+    description: "커밋 메시지 (미입력 시 GitHub API로 자동 조회)"
+    required: false
+  pr_number:
+    description: "PR 번호 (미입력 시 GitHub API로 자동 조회)"
+    required: false
+  pr_title:
+    description: "PR 제목 (미입력 시 GitHub API로 자동 조회)"
+    required: false
   google_sheets_credentials:
     description: "Google Sheets Credentials"
     required: true
